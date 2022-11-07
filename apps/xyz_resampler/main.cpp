@@ -17,6 +17,7 @@
 #include <lamure/pre/io/format_xyz.h>
 #include <lamure/pre/io/format_xyz_all.h>
 #include <lamure/pre/io/format_bin.h>
+#include <lamure/pre/io/format_e57.h>
 #include <lamure/pre/io/converter.h>
 
 
@@ -128,6 +129,7 @@ int main(int argc, const char *argv[])
         f[".xyz_all"] = &lamure::pre::create_format_instance<lamure::pre::format_xyzall>;
         f[".ply"] = &lamure::pre::create_format_instance<lamure::pre::format_ply>;
         f[".bin"] = &lamure::pre::create_format_instance<lamure::pre::format_bin>;
+        f[".e57"] = &lamure::pre::create_format_instance<lamure::pre::format_e57>;
 
         auto input_type = input_file.extension().string();
         auto output_type = output_file.extension().string();

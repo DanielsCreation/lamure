@@ -17,6 +17,7 @@
 #include <lamure/pre/io/format_xyz_grey.h>
 #include <lamure/pre/io/format_ply.h>
 #include <lamure/pre/io/format_bin.h>
+#include <lamure/pre/io/format_e57.h>
 #include <lamure/pre/io/converter.h>
 #include <lamure/pre/io/format_xyz_prov.h>
 
@@ -138,6 +139,10 @@ boost::filesystem::path builder::convert_to_binary(std::string const& input_file
         binary_file += ".bin_prov";
         format_xyz_prov::convert(input_filename, binary_file.string(), false);
         return binary_file;
+    }
+    else if(input_type == ".e57") {
+        binary_file += ".bin";
+        format_in = std::unique_ptr<format_e57>{new format_e57()};
     }
     else if (input_type == ".xyz") {
         binary_file += ".bin";

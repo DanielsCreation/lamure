@@ -18,6 +18,7 @@
 #include <lamure/pre/io/format_xyz_all.h>
 #include <lamure/pre/io/format_xyz_grey.h>
 #include <lamure/pre/io/format_bin.h>
+#include <lamure/pre/io/format_e57.h>
 #include <lamure/pre/io/converter.h>
 
 
@@ -188,7 +189,7 @@ int main(int argc, const char *argv[])
                 "    .kdnu - stage 4: start from serializer\n"
                 "  last two stages require intermediate files to be present in the working directory (-k option).\n"
                 "Conversion mode (-c option):\n"
-                "  INPUT: file in either .xyz, .xyz_all, or .ply format\n"
+                "  INPUT: file in either .xyz, .xyz_all, .e57 or .ply format\n"
                 "  OUTPUT: file in either .xyz_all or .bin_all format\n";
             return EXIT_SUCCESS;
         }
@@ -219,6 +220,7 @@ int main(int argc, const char *argv[])
         f[".xyz_grey"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz_grey>;
         f[".ply"] = &lamure::pre::create_format_instance<lamure::pre::format_ply>;
         f[".bin"] = &lamure::pre::create_format_instance<lamure::pre::format_bin>;
+        f[".e57"] = &lamure::pre::create_format_instance<lamure::pre::format_e57>;
 
         auto input_type = input_file.extension().string();
         auto output_type = output_file.extension().string();
