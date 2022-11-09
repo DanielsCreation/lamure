@@ -66,20 +66,20 @@ int main(int argc, char *argv[]) {
     int counter = 0;
     for(auto it = files.begin(); counter != 5; it++)
     {
-    {
-        std::chrono::steady_clock::time_point start_reading = std::chrono::steady_clock::now();
-        printf("reading...\n");
-        const char *file = (*it).c_str();
-        //format_e57::read(file, vec);
-        std::chrono::steady_clock::time_point end_reading = std::chrono::steady_clock::now();
-        std::cout << std::chrono::duration_cast<std::chrono::seconds>(end_reading - start_reading).count() << " Sekunden f�r das Lesen von Nr.: " << counter << std::endl;
+        {
+            std::chrono::steady_clock::time_point start_reading = std::chrono::steady_clock::now();
+            printf("reading...\n");
+            const char *file = (*it).c_str();
+            // format_e57::read(file, vec);
+            std::chrono::steady_clock::time_point end_reading = std::chrono::steady_clock::now();
+            std::cout << std::chrono::duration_cast<std::chrono::seconds>(end_reading - start_reading).count() << " Sekunden f�r das Lesen von Nr.: " << counter << std::endl;
 
-        std::chrono::steady_clock::time_point start_writing = std::chrono::steady_clock::now();
-        printf("writing...\n");
-        //format_e57::write(output_file, vec);
-        std::chrono::steady_clock::time_point end_writing = std::chrono::steady_clock::now();
-        std::cout << std::chrono::duration_cast<std::chrono::seconds>(end_writing - start_writing).count() << " Sekunden f�r das Schreiben von Nr.: " << std::endl;
-        counter++;
+            std::chrono::steady_clock::time_point start_writing = std::chrono::steady_clock::now();
+            printf("writing...\n");
+            // format_e57::write(output_file, vec);
+            std::chrono::steady_clock::time_point end_writing = std::chrono::steady_clock::now();
+            std::cout << std::chrono::duration_cast<std::chrono::seconds>(end_writing - start_writing).count() << " Sekunden f�r das Schreiben von Nr.: " << std::endl;
+            counter++;
+        }
     }
-
 }

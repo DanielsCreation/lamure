@@ -8,7 +8,6 @@
 #ifndef PRE_FORMAT_E57_H_
 #define PRE_FORMAT_E57_H_
 #include <boost/filesystem.hpp>
-#include <boost/program_options.hpp>
 #include <lamure/pre/platform.h>
 #include <lamure/pre/io/format_abstract.h>
 

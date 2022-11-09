@@ -5,7 +5,6 @@
 // Faculty of Media, Bauhaus-Universitaet Weimar
 // http://www.uni-weimar.de/medien/vr
 
-#include <lamure/pre/io/format_e57.h>
 #include <stdexcept>
 #include <iostream>
 #include <fstream>
@@ -18,8 +17,6 @@
 #include <e57/E57Simple.h>
 #include <boost/filesystem.hpp>
 #include <boost/program_options.hpp>
-#include <osg/Matrix>
-#include <osg/Vec3>
 #include <math.h>
 #include <float.h>
 #include <limits.h>
@@ -64,7 +61,7 @@ for (boost::filesystem::directory_iterator itr(p); itr != end_itr; ++itr)
 }
 
 void format_e57::
-write(const std::string &filename, buffer_callback_function callback) { 
+write(const std::string &filename, buffer_callback_function callback) {
 	LOGGER_ERROR("Not implemented"); 
 }
 
@@ -292,19 +289,13 @@ read(const std::string &file, surfel_callback_funtion callback)
 		}
 
 		eReader.Close();
-		return;
-		}
-		catch (e57::E57Exception& ex) {
-			ex.report(__FILE__, __LINE__, __FUNCTION__);
-			return;
+		
 		}
 		catch (std::exception& ex) {
 			cerr << "Got an std::exception, what=" << ex.what() << endl;
-			return;
 		}
 		catch (...) {
 			cerr << "Got an unknown exception" << endl;
-			return;
 		}
 
 

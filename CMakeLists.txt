@@ -9,7 +9,7 @@ project(lamure)
 set(CMAKE_CONFIGURATION_TYPES Debug Release CACHE TYPE INTERNAL FORCE )
 
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING
         "Choose the type of build, options are: None Debug Release RelWithDebInfo MinsizeRel."
         FORCE)
 endif()
@@ -102,6 +102,28 @@ find_package(GLFW3 REQUIRED)
 include(findGLFW3)
 include(FindOpenGL)
 include(FindGLEW)
+
+
+################################
+# E57
+################################
+SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${GLOBAL_EXT_DIR}/e57/include)
+SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${GLOBAL_EXT_DIR}/e57/lib)
+find_package(E57RefImpl REQUIRED)
+
+################################
+# Xerces
+################################
+SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${GLOBAL_EXT_DIR}/xerces/include)
+SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${GLOBAL_EXT_DIR}/xerces/lib)
+
+################################
+# OpenSceneGraph
+################################
+SET(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${GLOBAL_EXT_DIR}/OpenSceneGraph/include)
+SET(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${GLOBAL_EXT_DIR}/OpenSceneGraph/lib)
+find_package(OPENSCENEGRAPH REQUIRED)
+
 
 ################################
 # GLUT

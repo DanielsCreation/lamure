@@ -6,7 +6,6 @@
 // http://www.uni-weimar.de/medien/vr
 
 #include <lamure/pre/io/format_bin.h>
-
 #include <stdexcept>
 
 namespace lamure
