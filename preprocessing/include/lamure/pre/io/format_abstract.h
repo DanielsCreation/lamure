@@ -25,6 +25,7 @@ class PREPROCESSING_DLL format_abstract
 public:
 
     friend class converter;
+    friend class merger;
     typedef std::function<void( const surfel
     &)>
     surfel_callback_funtion;

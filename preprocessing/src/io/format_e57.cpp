@@ -66,12 +66,9 @@ write(const std::string &filename, buffer_callback_function callback) {
 }
 
 
-
-
 void format_e57::
 read(const std::string &file, surfel_callback_funtion callback)
 {
-
 	osg::Matrix m;
 	m.makeIdentity();
 	try
@@ -84,7 +81,6 @@ read(const std::string &file, surfel_callback_funtion callback)
 		//Get the number of scan images available
 		int data3DCount = eReader.GetData3DCount();
 		e57::Data3D	scanHeader;
-		cerr << "Total num of sets is " << data3DCount << endl;
 		for (int scanIndex = 0; scanIndex < data3DCount; scanIndex++)
 		{
 			eReader.ReadData3D(scanIndex, scanHeader);
@@ -264,7 +260,7 @@ read(const std::string &file, surfel_callback_funtion callback)
 						
 					}
 
-                    
+                 
 				}
 			}
 

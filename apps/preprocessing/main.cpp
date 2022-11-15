@@ -19,6 +19,7 @@
 #include <lamure/pre/io/format_xyz_grey.h>
 #include <lamure/pre/io/format_bin.h>
 #include <lamure/pre/io/format_e57.h>
+#include <lamure/pre/io/merger.h>
 #include <lamure/pre/io/converter.h>
 
 
@@ -42,10 +43,16 @@ int main(int argc, const char *argv[])
     po::options_description od_cmd("cmd");
     po::options_description od("Usage: " + exec_name + " [OPTION]... INPUT\n"
                                "       " + exec_name + " -c INPUT OUTPUT\n\n"
+                               "       " + exec_name + " -g INPUTDIR TYPE OUTPUT\n\n"
                                "Allowed Options");
+
     od.add_options()
         ("help,h",
          "print help message")
+
+        ("convert,c", "convert RAW point data from one format to another (see convertion mode description below).")
+
+        ("merge,g", "merge content of multiple files into one (see merge mode description below).")
 
         ("working-directory,w",
          po::value<std::string>(),
@@ -157,21 +164,20 @@ int main(int argc, const char *argv[])
          "Algorithm for computing representative surfel radius for tree nodes. Possible values:\n"
          "  amean - arithmetic mean\n"
          "  gmean - geometric mean\n"
-         "  hmean - harmonic mean")
+         "  hmean - harmonic mean");
 
-        ("convert,c",
-         "convert RAW point data from one format to another (see convertion mode description below).");
+        
 
     od_hidden.add_options()
-        ("files,i",
+        ("user_input,i",
          po::value<std::vector<std::string>>()->composing()->required(),
-         "files");
+         "user_input");
 
     od_cmd.add(od_hidden).add(od);
 
     // parse command line options
     try {
-        pod.add("files", -1);
+        pod.add("user_input", -1);
 
         po::store(po::command_line_parser(argc, argv)
                   .options(od_cmd)
@@ -190,7 +196,11 @@ int main(int argc, const char *argv[])
                 "  last two stages require intermediate files to be present in the working directory (-k option).\n"
                 "Conversion mode (-c option):\n"
                 "  INPUT: file in either .xyz, .xyz_all, .e57 or .ply format\n"
-                "  OUTPUT: file in either .xyz_all or .bin_all format\n";
+                "  OUTPUT: file in either .xyz_all or .bin_all format\n"
+                "Merge mode (-g option):\n"
+                "  INPUT: directory containing files in .e57 format\n"
+                "  OUTPUT: single file in .bin format\n",
+                "  USAGE: " + exec_name + " file in .bin format\n\n";
             return EXIT_SUCCESS;
         }
 
@@ -201,18 +211,69 @@ int main(int argc, const char *argv[])
         return EXIT_FAILURE;
     }
 
-    const auto files         = vm["files"].as<std::vector<std::string>>();
+    const auto user_input = vm["user_input"].as<std::vector<std::string>>();
     const size_t buffer_size = size_t(std::max(vm["buffer-size"].as<int>(), 20)) * 1024UL * 1024UL;
 
-    if (vm.count("convert")) {
-        // convertion mode
-        if (files.size() != 2) {
-            std::cerr << "Convestion mode needs one input file "
-                         "and one output file to be specified" << details_msg;
+    if(vm.count("merge"))
+    {
+        // merge mode
+        if(user_input.size() != 3)
+        {
+            std::cerr << "Merge mode needs one input directory "
+                         "and one output file to be specified"
+                      << details_msg;
             return EXIT_FAILURE;
         }
-        const auto input_file = fs::canonical(files[0]);
-        const auto output_file = fs::absolute(files[1]);
+
+        lamure::pre::format_factory f;
+        f[".xyz"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz>;
+        f[".xyz_all"] = &lamure::pre::create_format_instance<lamure::pre::format_xyzall>;
+        f[".xyz_grey"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz_grey>;
+        f[".ply"] = &lamure::pre::create_format_instance<lamure::pre::format_ply>;
+        f[".bin"] = &lamure::pre::create_format_instance<lamure::pre::format_bin>;
+        f[".e57"] = &lamure::pre::create_format_instance<lamure::pre::format_e57>;
+
+        const auto input_dir = fs::canonical(user_input[0]);
+        const auto input_type = std::string(user_input[1]);
+        const auto output_file = fs::absolute(user_input[2]);
+        const auto output_type = output_file.extension().string();
+
+        if(f.find(input_type) == f.end())
+        {
+            std::cerr << "Unknown input file format: " << input_type << details_msg;
+            return EXIT_FAILURE;
+        }
+        if(f.find(output_type) == f.end())
+        {
+            std::cerr << "Unknown output file format" << input_type << details_msg;
+            return EXIT_FAILURE;
+        }
+
+        lamure::pre::format_abstract *inp = f[input_type]();
+        lamure::pre::format_abstract *out = f[output_type]();
+
+        lamure::pre::merger mer(*inp, *out, buffer_size);
+
+        std::vector<std::string> input_filenames;
+        mer.getFilenames(input_dir, input_type, input_filenames);
+
+        mer.merge(input_filenames, output_file.string());
+
+        delete inp;
+        delete out;
+    }
+
+    else if(vm.count("convert"))
+    {
+        // convertion mode
+        if(user_input.size() != 2)
+        {
+            std::cerr << "Convestion mode needs 3 arguments to be specified:\n1. one input file\nthe input_type\none output file"
+                      << details_msg;
+            return EXIT_FAILURE;
+        }
+        const auto input_file = fs::canonical(user_input[0]);
+        const auto output_file = fs::absolute(user_input[1]);
 
         lamure::pre::format_factory f;
         f[".xyz"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz>;
@@ -225,16 +286,18 @@ int main(int argc, const char *argv[])
         auto input_type = input_file.extension().string();
         auto output_type = output_file.extension().string();
 
-        if (f.find(input_type) == f.end()) {
+        if(f.find(input_type) == f.end())
+        {
             std::cerr << "Unknown input file format: " << input_type << details_msg;
             return EXIT_FAILURE;
         }
-        if (f.find(output_type) == f.end()) {
+        if(f.find(output_type) == f.end())
+        {
             std::cerr << "Unknown output file format" << input_type << details_msg;
             return EXIT_FAILURE;
         }
-        lamure::pre::format_abstract* inp = f[input_type]();
-        lamure::pre::format_abstract* out = f[output_type]();
+        lamure::pre::format_abstract *inp = f[input_type]();
+        lamure::pre::format_abstract *out = f[output_type]();
 
         lamure::pre::converter conv(*inp, *out, buffer_size);
 
@@ -243,15 +306,17 @@ int main(int argc, const char *argv[])
         delete inp;
         delete out;
     }
+
     else {
         // build mode
-        if (files.size() != 1) {
+        if(user_input.size() != 1)
+        {
             std::cerr << "Exactly one input file must be specified" << details_msg;
             return EXIT_FAILURE;
         }
 
         // preconditions
-        const auto input_file = fs::absolute(files[0]);
+        const auto input_file = fs::absolute(user_input[0]);
         auto wd = input_file.parent_path();
 
         if (vm.count("working-directory")) {

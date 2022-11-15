@@ -23,6 +23,7 @@ namespace pre
 
 class PREPROCESSING_DLL converter
 {
+
 public:
     typedef std::function<void(surfel &, bool &)> surfel_modifier_function;
 
@@ -41,8 +42,7 @@ public:
         surfels_in_buffer_ = buffer_size / sizeof(surfel);
     }
 
-    virtual             ~converter()
-    {}
+    virtual ~converter() {}
 
     void convert(const std::string &input_filename,
                  const std::string &output_filename);
