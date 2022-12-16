@@ -93,7 +93,7 @@ class PREPROCESSING_DLL bvh
      */
     std::pair<node_id_type, node_id_type> get_node_ranges(const uint32_t depth) const;
 
-    std::vector<std::pair<surfel_id_t, real>> get_nearest_neighbours(const surfel_id_t target_surfel, const uint32_t num_neighbours, const bool do_local_search = false) const;
+    std::vector<std::pair<surfel_id_t, real>> get_nearest_neighbours(const surfel_id_t target_surfel, const uint32_t num_neighbours, const bool do_local_search = true) const;
 
     std::vector<std::pair<surfel_id_t, real>> get_nearest_neighbours_in_nodes(const surfel_id_t target_surfel, const std::vector<node_id_type> &target_nodes, const uint32_t num_neighbours) const;
 

@@ -33,13 +33,12 @@ read(const std::string& filename, surfel_callback_funtion callback)
     file.read((char*)&pos.y, 4);
     file.read((char*)&pos.z, 4);
 
-    vec3b color; char alpha;
+    vec3b color;
     file.read((char*)&color.x, 1);
     file.read((char*)&color.y, 1);
     file.read((char*)&color.z, 1);
-    file.read((char*)&alpha, 1);
 
-    float radius;
+    real radius;
     file.read((char*)&radius, 4);
 
     vec3f normal;

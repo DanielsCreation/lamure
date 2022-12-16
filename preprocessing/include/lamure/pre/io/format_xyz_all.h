@@ -16,10 +16,10 @@ namespace lamure
 namespace pre
 {
 
-class PREPROCESSING_DLL format_xyzall: public format_abstract
+class PREPROCESSING_DLL format_xyz_all: public format_abstract
 {
 public:
-    explicit format_xyzall()
+    explicit format_xyz_all()
         : format_abstract()
     {
         has_normals_ = true;

@@ -18,6 +18,7 @@ void converter::
 convert(const std::string &input_filename,
         const std::string &output_filename)
 {
+    std::cout << "convert" << std::endl;
     discarded_ = 0;
     flush_ready_ = false;
     flush_done_ = false;
@@ -40,15 +41,16 @@ convert(const std::string &input_filename,
     };
 
     // output thread
-    std::thread tr([&]
-                   {
-                       out_format_.write(output_filename, buf_callback);
-                   });
+    std::thread tr([&] 
+        {
+            out_format_.write(output_filename, buf_callback);
+        });
 
     // read input
-    in_format_.read(input_filename,
-                    [&](const surfel &s)
-                    { this->append_surfel(s); });
+    in_format_.read(input_filename, [&](const surfel &s) 
+        { 
+            this->append_surfel(s);
+        });
 
     flush_buffer();
     {
@@ -68,6 +70,7 @@ void converter::
 write_in_core_surfels_out(const surfel_vector &surf_vec,
                           const std::string &output_filename)
 {
+    std::cout << "write_in_core_surfels_out" << std::endl;
     discarded_ = 0;
     flush_ready_ = false;
     flush_done_ = false;
@@ -76,6 +79,7 @@ write_in_core_surfels_out(const surfel_vector &surf_vec,
 
     auto buf_callback = [&](surfel_vector &surfels)
     {
+        std::cout << "buf_callback" << std::endl;
         std::unique_lock<std::mutex> lk(mtx_);
         cv_.wait(lk, [this]
         { return flush_ready_; });
@@ -120,6 +124,7 @@ write_in_core_surfels_out(const surfel_vector &surf_vec,
 void converter::
 append_surfel(const surfel &surf)
 {
+    // std::cout << "append_surfel" << std::endl;
     if (is_degenerate(surf)) {
         ++discarded_;
         return;
@@ -159,6 +164,7 @@ append_surfel(const surfel &surf)
 void converter::
 flush_buffer()
 {
+    std::cout << "flush_buffer" << std::endl;
     if (!buffer_.empty()) {
         LOGGER_TRACE("Flush buffer to disk. buffer size: " <<
                                                            buffer_.size() << " surfels");
@@ -181,6 +187,7 @@ flush_buffer()
 const bool converter::
 is_degenerate(const surfel &s) const
 {
+    // std::cout << "is_degenerate" << std::endl;
     return !std::isfinite(s.pos().x)
         || !std::isfinite(s.pos().y)
         || !std::isfinite(s.pos().z);

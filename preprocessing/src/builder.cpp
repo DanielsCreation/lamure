@@ -17,6 +17,7 @@
 #include <lamure/pre/io/format_xyz_grey.h>
 #include <lamure/pre/io/format_ply.h>
 #include <lamure/pre/io/format_bin.h>
+#include <lamure/pre/io/format_pc_bin.h>
 #include <lamure/pre/io/format_e57.h>
 #include <lamure/pre/io/converter.h>
 #include <lamure/pre/io/format_xyz_prov.h>
@@ -141,16 +142,16 @@ boost::filesystem::path builder::convert_to_binary(std::string const& input_file
         return binary_file;
     }
     else if(input_type == ".e57") {
-        binary_file += ".bin";
+        binary_file += ".pc_bin";
         format_in = std::unique_ptr<format_e57>{new format_e57()};
     }
     else if (input_type == ".xyz") {
-        binary_file += ".bin";
+        binary_file += ".pc_bin";
         format_in = std::unique_ptr<format_xyz>{new format_xyz()};
     }
     else if (input_type == ".xyz_all") {
-        binary_file += ".bin_all";
-        format_in = std::unique_ptr<format_xyzall>{new format_xyzall()};
+        binary_file += ".bin";
+        format_in = std::unique_ptr<format_xyz_all>{new format_xyz_all()};
     }
     else if (input_type == ".xyz_bin") {
         binary_file += ".bin";
@@ -161,8 +162,13 @@ boost::filesystem::path builder::convert_to_binary(std::string const& input_file
         format_in = std::unique_ptr<format_ply>{new format_ply()};
     }
     else if (input_type == ".xyz_grey") {
-       binary_file += ".bin";
+       binary_file += ".pc_bin";
        format_in = std::unique_ptr<format_xyz_grey>{new format_xyz_grey()};   
+    }
+    else if(input_type == ".pc_bin")
+    {
+       binary_file += ".bin";
+       format_in = std::unique_ptr<format_pc_bin>{new format_pc_bin()};
     }
     else {
         LOGGER_ERROR("Unable to convert input file: Unknown file format");
@@ -426,7 +432,7 @@ bool builder::resample()
     const std::string input_file_type = input_file.extension().string();
 
     uint16_t start_stage = 0;
-    if (input_file_type == ".xyz" ||
+    if (input_file_type == ".e57" ||
         input_file_type == ".ply" ||
         input_file_type == ".bin" ||
         input_file_type == ".xyz" ||
@@ -470,13 +476,15 @@ construct()
     auto input_file = fs::canonical(fs::path(desc_.input_file));
     const std::string input_file_type = input_file.extension().string();
 
-    if (input_file_type == ".xyz" ||
+    if (input_file_type == ".xyz" || 
+        input_file_type == ".pc_bin" ||
         input_file_type == ".ply" ||
         input_file_type == ".xyz_grey" ||
         input_file_type == ".bin")
         desc_.compute_normals_and_radii = true;
 
-    if (input_file_type == ".xyz" ||
+    if (input_file_type == ".xyz" || 
+        input_file_type == ".pc_bin" ||
         input_file_type == ".xyz_all" ||
         input_file_type == ".xyz_grey" ||
         input_file_type == ".xyz_bin" ||
@@ -519,7 +527,7 @@ construct()
             std::ifstream surfel_bin_file(input_file.string().c_str(), std::ios::binary | std::ios::ate);
             uint64_t num_surfels = surfel_bin_file.tellg() / sizeof(surfel);
             surfel_bin_file.close();
-            desc_.prov_file = input_file.string() + ".bin_prov";
+            desc_.prov_file = input_file.stem().string() + ".bin_prov";
             std::ofstream dummy_file(desc_.prov_file.c_str(), std::ios::out | std::ios::binary);
             for (uint64_t i = 0; i < num_surfels*sizeof(prov); ++i) {
                 char zero = 0;

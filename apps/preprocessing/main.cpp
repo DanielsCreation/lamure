@@ -18,6 +18,7 @@
 #include <lamure/pre/io/format_xyz_all.h>
 #include <lamure/pre/io/format_xyz_grey.h>
 #include <lamure/pre/io/format_bin.h>
+#include <lamure/pre/io/format_pc_bin.h>
 #include <lamure/pre/io/format_e57.h>
 #include <lamure/pre/io/merger.h>
 #include <lamure/pre/io/converter.h>
@@ -99,12 +100,12 @@ int main(int argc, const char *argv[])
           "cloud before computing the LODs")
 
         ("num-outlier-neighbours",
-          po::value<int>()->default_value(24),
+          po::value<int>()->default_value(24), // davor: 24
           "defines the number of nearest neighbours that are searched for the outlier "
            "detection")
 
         ("neighbours",
-         po::value<int>()->default_value(40),
+         po::value<int>()->default_value(10), // davor: 40
          "Number of neighbours for the plane-fitting when computing normals")
 
         ("keep-interm,k",
@@ -129,7 +130,7 @@ int main(int argc, const char *argv[])
          "  .xyz_prov for xyzrgb +p per line")
 
         ("reduction-algo",
-         po::value<std::string>()->default_value("ndc_prov"),
+         po::value<std::string>()->default_value("const"),
          "Reduction strategy for the LOD construction. Possible values:\n"
          "  ndc - normal deviation clustering (ndc)\n"
          "  ndc_prov - output provenance information alongside ndc\n"
@@ -149,18 +150,18 @@ int main(int argc, const char *argv[])
          "  planefitting ")
 
          ("radius-computation-algo",
-         po::value<std::string>()->default_value("averagedistance"),
+         po::value<std::string>()->default_value("naturalneighbours"),
          "Algorithm for computing surfel radius. Possible values:\n"
          "  averagedistance \n"
          "  naturalneighbours")
 
          ("radius-multiplier",
-         po::value<float>()->default_value(0.7, "0.7"),
+         po::value<float>()->default_value(1.0, "1.0"), // davor: 0.7
          "the multiplier for the average distance to the neighbours"
          "during radius computation when using the averagedistance strategy")
 
         ("rep-radius-algo",
-         po::value<std::string>()->default_value("gmean"),
+         po::value<std::string>()->default_value("amean"),
          "Algorithm for computing representative surfel radius for tree nodes. Possible values:\n"
          "  amean - arithmetic mean\n"
          "  gmean - geometric mean\n"
@@ -195,11 +196,11 @@ int main(int argc, const char *argv[])
                 "    .kdnu - stage 4: start from serializer\n"
                 "  last two stages require intermediate files to be present in the working directory (-k option).\n"
                 "Conversion mode (-c option):\n"
-                "  INPUT: file in either .xyz, .xyz_all, .e57 or .ply format\n"
-                "  OUTPUT: file in either .xyz_all or .bin_all format\n"
+                "  INPUT: file in either .xyz, .e57 or .ply format\n"
+                "  OUTPUT: file in either .pc_bin or .bin format\n"
                 "Merge mode (-g option):\n"
-                "  INPUT: directory containing files in .e57 format\n"
-                "  OUTPUT: single file in .bin format\n",
+                "  INPUT: directory containing files in either .xyz, .e57 or .ply format\n"
+                "  OUTPUT: single file in either .pc_bin or .bin format\n",
                 "  USAGE: " + exec_name + " file in .bin format\n\n";
             return EXIT_SUCCESS;
         }
@@ -227,10 +228,11 @@ int main(int argc, const char *argv[])
 
         lamure::pre::format_factory f;
         f[".xyz"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz>;
-        f[".xyz_all"] = &lamure::pre::create_format_instance<lamure::pre::format_xyzall>;
+        f[".xyz_all"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz_all>;
         f[".xyz_grey"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz_grey>;
         f[".ply"] = &lamure::pre::create_format_instance<lamure::pre::format_ply>;
         f[".bin"] = &lamure::pre::create_format_instance<lamure::pre::format_bin>;
+        f[".pc_bin"] = &lamure::pre::create_format_instance<lamure::pre::format_pc_bin>;
         f[".e57"] = &lamure::pre::create_format_instance<lamure::pre::format_e57>;
 
         const auto input_dir = fs::canonical(user_input[0]);
@@ -277,10 +279,11 @@ int main(int argc, const char *argv[])
 
         lamure::pre::format_factory f;
         f[".xyz"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz>;
-        f[".xyz_all"] = &lamure::pre::create_format_instance<lamure::pre::format_xyzall>;
+        f[".xyz_all"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz_all>;
         f[".xyz_grey"] = &lamure::pre::create_format_instance<lamure::pre::format_xyz_grey>;
         f[".ply"] = &lamure::pre::create_format_instance<lamure::pre::format_ply>;
         f[".bin"] = &lamure::pre::create_format_instance<lamure::pre::format_bin>;
+        f[".pc_bin"] = &lamure::pre::create_format_instance<lamure::pre::format_pc_bin>;
         f[".e57"] = &lamure::pre::create_format_instance<lamure::pre::format_e57>;
 
         auto input_type = input_file.extension().string();
@@ -425,7 +428,7 @@ int main(int argc, const char *argv[])
         desc.compute_normals_and_radii    = vm.count("recompute");
         desc.keep_intermediate_files      = vm.count("keep-interm");
         desc.resample                     = vm.count("resample");
-        // manual check because typed_value doenst support check whether default is used
+        // manual check because typed_value doesnt support check whether default is used
 
         desc.memory_budget                = std::max(vm["memory-budget"].as<float>(), 1.0f);
 
@@ -435,6 +438,25 @@ int main(int argc, const char *argv[])
         desc.outlier_ratio                = std::max(0.0f, vm["outlier-ratio"].as<float>() );
         desc.number_of_outlier_neighbours = std::max(vm["num-outlier-neighbours"].as<int>(), 1);
         desc.radius_multiplier            = vm["radius-multiplier"].as<float>();
+
+        std::cout << "desc.input_file:" << " " << desc.input_file << std::endl;
+        std::cout << "desc.working_directory:" << " " << desc.working_directory << std::endl;
+        std::cout << "desc.max_fan_factor:" << " " << desc.max_fan_factor << std::endl;
+        std::cout << "desc.surfels_per_node:" << " " << desc.surfels_per_node << std::endl;
+        std::cout << "desc.final_stage:" << " " << desc.final_stage << std::endl;
+        std::cout << "desc.compute_normals_and_radii:" << " " << desc.compute_normals_and_radii << std::endl;
+        std::cout << "desc.keep_intermediate_files:" << " " << desc.keep_intermediate_files << std::endl;
+        std::cout << "desc.resample:" << " " << desc.resample << std::endl;
+        std::cout << "desc.buffer_size:" << " " << desc.buffer_size << std::endl;
+        std::cout << "desc.number_of_neighbours:" << " " << desc.number_of_neighbours << std::endl;
+        std::cout << "desc.translate_to_origin:" << " " << desc.translate_to_origin << std::endl;
+        std::cout << "desc.outlier_ratio:" << " " << desc.outlier_ratio << std::endl;
+        std::cout << "desc.number_of_outlier_neighbours:" << " " << desc.number_of_outlier_neighbours << std::endl;
+        std::cout << "desc.radius_multiplier:" << " " << desc.radius_multiplier << std::endl;
+        std::cout << "desc.radius_computation_algo:" << " " << radius_computation_algo << std::endl;
+        std::cout << "desc.normal_computation_algo:" << " " << normal_computation_algo << std::endl;
+
+        system("pause");
 
         //optional prov file
         desc.prov_file                    = vm["prov-file"].as<std::string>();
@@ -452,7 +474,6 @@ int main(int argc, const char *argv[])
     }
 
     std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-    std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
     std::cout << "Preprocessing total time in s: " << std::chrono::duration_cast<std::chrono::seconds>(end - start).count() << std::endl;
 
     return EXIT_SUCCESS;

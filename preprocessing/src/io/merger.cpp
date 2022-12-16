@@ -104,7 +104,7 @@ void merger::write_in_core_surfels_out(const surfel_vector &surf_vec, const std:
     for(auto const &surf : surf_vec)
     {
         this->append_surfel(surfel(surf.pos(), surf.color()));
-    }
+    
 
     flush_buffer();
     {
@@ -117,6 +117,7 @@ void merger::write_in_core_surfels_out(const surfel_vector &surf_vec, const std:
     if(discarded_ > 0)
     {
         LOGGER_WARN("Discarded degenerate surfels: " << discarded_);
+    }
     }
 }
 

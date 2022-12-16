@@ -61,7 +61,8 @@ for (boost::filesystem::directory_iterator itr(p); itr != end_itr; ++itr)
 }
 
 void format_e57::
-write(const std::string &filename, buffer_callback_function callback) {
+write(const std::string &filename, buffer_callback_function callback) 
+{
 	LOGGER_ERROR("Not implemented"); 
 }
 
@@ -213,6 +214,7 @@ read(const std::string &file, surfel_callback_funtion callback)
 				columnIndex			//!< pointer to a buffer with the columnIndex*/
 			);
 
+            uint8_t color[3];
 			int64_t		count = 0;
 			unsigned	size = 0;
 			int			col = 0;
@@ -227,17 +229,11 @@ read(const std::string &file, surfel_callback_funtion callback)
 						osg::Vec3 p(xData[i], yData[i], zData[i]);
 						p = p * m;
 
-                        vec3r pos;
-						pos.x = p[0];
-						pos.y = p[1];
-						pos.z = p[2];
+                        color[0] = uint8_t(round(((redData[i] - colorRedOffset) * 255.0) / colorRedRange));
+						color[1] = uint8_t(round(((greenData[i] - colorGreenOffset) * 255.0) / colorGreenRange));
+                        color[2] = uint8_t(round(((blueData[i] - colorBlueOffset) * 255.0) / colorBlueRange));
 
-                        vec3b color;
-						color.r = ((redData[i] - colorRedOffset) * 255.0) / colorRedRange;
-						color.g = ((greenData[i] - colorGreenOffset) * 255.0) / colorGreenRange;
-						color.b = ((blueData[i] - colorBlueOffset) * 255.0) / colorBlueRange;
-
-						callback(surfel(vec3r(pos[0], pos[1], pos[2]), vec3b(color[0], color[1], color[2])));
+                        callback(surfel(vec3r(p[0], p[1], p[2]), vec3b(color[0], color[1], color[2])));
 
 					}
 					else if (isInvalidData[i] == 0 && rangeData)
@@ -245,18 +241,11 @@ read(const std::string &file, surfel_callback_funtion callback)
 						osg::Vec3 p(rangeData[i] * cos(elData[i]) * cos(azData[i]), rangeData[i] * cos(elData[i]) * sin(azData[i]), rangeData[i] * sin(elData[i]));
 						p = p * m;
 
-                        vec3r pos;
-						pos.x = p[0];
-						pos.y = p[1];
-						pos.z = p[2];
+                        color[0] = uint8_t(round(((redData[i] - colorRedOffset) * 255.0) / colorRedRange));
+						color[1] = uint8_t(round(((greenData[i] - colorGreenOffset) * 255.0) / colorGreenRange));
+                        color[2] = uint8_t(round(((blueData[i] - colorBlueOffset) * 255.0) / colorBlueRange));
 
-						//Normalize color to 0 - 255
-                        vec3b color;
-						color.r = ((redData[i] - colorRedOffset) * 255.0) / colorRedRange;
-						color.g = ((greenData[i] - colorGreenOffset) * 255.0) / colorGreenRange;
-						color.b = ((blueData[i] - colorBlueOffset) * 255.0) / colorBlueRange;
-
-						callback(surfel(vec3r(pos[0], pos[1], pos[2]), vec3b(color[0], color[1], color[2])));
+                        callback(surfel(vec3r(p[0], p[1], p[2]), vec3b(color[0], color[1], color[2])));
 						
 					}
 
