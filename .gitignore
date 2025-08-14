@@ -7,3 +7,67 @@ install
 cmake-build-debug
 cmake-build-release
 
+# --- CMake / Build-Artefakte ---
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+/bin/
+/obj/
+/out/
+
+# --- IDE/Editor ---
+.vs/
+.vscode/
+
+# --- Visual Studio (von CMake generiert) ---
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# --- Übliche Build-Varianten/Archs ---
+/Debug/
+/Release/
+/RelWithDebInfo/
+/MinSizeRel/
+/x64/
+/x86/
+/ARM/
+/ARM64/
+
+# --- Compiler/Linker-Artefakte ---
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.exp
+*.ilk
+*.pdb
+
+# --- Sonstiges/Generiert ---
+*.log
+*.pch
+*.ipch
+*.cache
+*.tmp
+*.tlog
+/Testing/
+/test-output/
+/coverage/
+/lcov.info
+/_package/
+/dist/
+/packages/
+
+# --- OS-spezifisch ---
+Thumbs.db
+.DS_Store
