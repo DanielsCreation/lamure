@@ -15,10 +15,8 @@ namespace pre
 {
 
 void converter::
-convert(const std::string &input_filename,
-        const std::string &output_filename)
+convert(const std::string &input_filename, const std::string &output_filename)
 {
-    std::cout << "convert" << std::endl;
     discarded_ = 0;
     flush_ready_ = false;
     flush_done_ = false;
@@ -61,14 +59,12 @@ convert(const std::string &input_filename,
     tr.join();
 
     if (discarded_ > 0) {
-        LOGGER_WARN("Discarded degenerate surfels: " <<
-                                                     discarded_);
+        LOGGER_WARN("Discarded degenerate surfels: " << discarded_);
     }
 }
 
 void converter::
-write_in_core_surfels_out(const surfel_vector &surf_vec,
-                          const std::string &output_filename)
+write_in_core_surfels_out(const surfel_vector &surf_vec, const std::string &output_filename)
 {
     std::cout << "write_in_core_surfels_out" << std::endl;
     discarded_ = 0;
@@ -95,17 +91,11 @@ write_in_core_surfels_out(const surfel_vector &surf_vec,
         return has_data;
     };
 
-    // output thread
-    std::thread tr([&]
-                   {
-                       out_format_.write(extended_output_filename, buf_callback);
-                   });
+    std::thread tr([&] { out_format_.write(extended_output_filename, buf_callback); });
 
-    // read input
     for (auto const &surf : surf_vec) {
         this->append_surfel(surfel(surf.pos(), surf.color()));
     }
-
 
     flush_buffer();
     {
@@ -114,11 +104,7 @@ write_in_core_surfels_out(const surfel_vector &surf_vec,
     }
     cv_.notify_one();
     tr.join();
-
-    if (discarded_ > 0) {
-        LOGGER_WARN("Discarded degenerate surfels: " <<
-                                                     discarded_);
-    }
+    if (discarded_ > 0) { LOGGER_WARN("Discarded degenerate surfels: " << discarded_); }
 }
 
 void converter::
@@ -164,10 +150,8 @@ append_surfel(const surfel &surf)
 void converter::
 flush_buffer()
 {
-    std::cout << "flush_buffer" << std::endl;
     if (!buffer_.empty()) {
-        LOGGER_TRACE("Flush buffer to disk. buffer size: " <<
-                                                           buffer_.size() << " surfels");
+        LOGGER_TRACE("Flush buffer to disk. buffer size: " << buffer_.size());
         {
             std::lock_guard<std::mutex> lk(mtx_);
             flush_ready_ = true;
@@ -188,9 +172,7 @@ const bool converter::
 is_degenerate(const surfel &s) const
 {
     // std::cout << "is_degenerate" << std::endl;
-    return !std::isfinite(s.pos().x)
-        || !std::isfinite(s.pos().y)
-        || !std::isfinite(s.pos().z);
+    return !std::isfinite(s.pos().x) || !std::isfinite(s.pos().y) || !std::isfinite(s.pos().z);
 }
 
 } // namespace pre

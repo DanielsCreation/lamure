@@ -10,6 +10,7 @@
 #include <windows.h>
 #include "TileStitcher.h"
 #include <iomanip>
+#include <string>
 
 TileStitcher::TileStitcher(std::string input_dir, std::string output_dir, std::string name, int tiles_per_row, int tiles_per_column)
 {
@@ -89,7 +90,7 @@ void TileStitcher::extract_tile_information()
     FreeImage_Unload(last_tile_file);
 }
 
-std::experimental::filesystem::path TileStitcher::get_path(int x, int y) const
+fs::path TileStitcher::get_path(int x, int y) const
 {
     fs::path file;
     file += in_dir;

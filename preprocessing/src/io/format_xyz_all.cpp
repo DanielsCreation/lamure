@@ -18,7 +18,7 @@ namespace pre
 {
 
 void format_xyz_all::
-read(const std::string &filename, surfel_callback_funtion callback)
+read(const std::string &filename, surfel_callback_function callback)
 {
     std::ifstream xyz_file_stream(filename);
 
@@ -61,10 +61,7 @@ read(const std::string &filename, surfel_callback_funtion callback)
         sstream >> std::setprecision(LAMURE_STREAM_PRECISION) >> norm[1];
         sstream >> std::setprecision(LAMURE_STREAM_PRECISION) >> norm[2];
 
-        callback(surfel(vec3r(pos[0], pos[1], pos[2]),
-                        vec3b(color[0], color[1], color[2]),
-                        radius,
-                        vec3f(norm[0], norm[1], norm[2])));
+        callback(surfel(vec3r(pos[0], pos[1], pos[2]), vec3b(color[0], color[1], color[2]), radius, vec3f(norm[0], norm[1], norm[2])));
     }
     xyz_file_stream.close();
 }

@@ -156,6 +156,7 @@ struct input {
   bool brush_clear_ = 0;
   bool gui_lock_ = false;
   lamure::ren::camera::mouse_state mouse_state_;
+  bool keys_[3] = {0, 0, 0};
 };
 
 input input_;
@@ -208,19 +209,19 @@ struct settings {
   int32_t vram_ {2048};
   int32_t ram_ {4096};
   int32_t upload_ {32};
-  bool provenance_ {0};
+  bool provenance_ {1};
   bool create_aux_resources_ {1};
   float near_plane_ {0.001f};
   float far_plane_ {1000.0f};
   float fov_ {30.0f};
-  bool splatting_ {1};
+  bool splatting_ {0};
   bool gamma_correction_ {1};
   int32_t gui_ {1};
   int32_t travel_ {2};
   float travel_speed_ {20.5f};
-  int32_t max_brush_size_{4096};
+  int32_t max_brush_size_{2048};
   bool lod_update_ {1};
-  bool use_pvs_ {1};
+  bool use_pvs_ {0};
   bool pvs_culling_ {0};
   float lod_point_scale_ {1.0f};
   float aux_point_size_ {1.0f};
@@ -236,7 +237,7 @@ struct settings {
   bool show_views_ {0};
   bool show_photos_ {0};
   bool show_octrees_ {0};
-  bool show_bvhs_ {0};
+  bool show_bvhs_ {1};
   bool show_pvs_ {0};
   int32_t channel_ {0};
   float lod_error_ {LAMURE_DEFAULT_THRESHOLD};
@@ -249,7 +250,8 @@ struct settings {
   bool heatmap_ {0};
   float heatmap_min_ {0.0f};
   float heatmap_max_ {0.05f};
-  scm::math::vec3f background_color_ {LAMURE_DEFAULT_COLOR_R, LAMURE_DEFAULT_COLOR_G, LAMURE_DEFAULT_COLOR_B};
+  //scm::math::vec3f background_color_ {LAMURE_DEFAULT_COLOR_R, LAMURE_DEFAULT_COLOR_G, LAMURE_DEFAULT_COLOR_B};
+  scm::math::vec3f background_color_{0.5f, 0.5f, 0.5f};
   scm::math::vec3f heatmap_color_min_ {68.0f/255.0f, 0.0f, 84.0f/255.0f};
   scm::math::vec3f heatmap_color_max_ {251.f/255.f, 231.f/255.f, 35.f/255.f};
   std::string atlas_file_ {""};
@@ -595,7 +597,7 @@ void load_settings(std::string const& vis_file_name, settings& settings) {
             exit(-1);
           }
 
-          //std::cout << key << " : " << value << std::endl;
+          std::cout << key << " : " << value << std::endl;
         }
 
       }
@@ -1118,8 +1120,8 @@ void draw_resources(const lamure::context_t context_id, const lamure::view_t vie
       context_->draw_arrays(scm::gl::PRIMITIVE_LINE_LIST, 0, pvs_resource_.num_primitives_);
     }
   }
-
 }
+
 
 void draw_all_models(const lamure::context_t context_id, const lamure::view_t view_id, scm::gl::program_ptr shader) {
 
@@ -1492,15 +1494,11 @@ void glut_display() {
   context_->clear_default_color_buffer();
   context_->set_default_frame_buffer();
   context_->set_depth_stencil_state(depth_state_disable_);
-  
   context_->bind_program(vis_quad_shader_);
-  
   context_->bind_texture(fbo_color_buffer_, filter_linear_, 0);
-  vis_quad_shader_->uniform("gamma_correction", (bool)settings_.gamma_correction_);
-
-  context_->set_viewport(scm::gl::viewport(scm::math::vec2ui(0, 0), scm::math::vec2ui(settings_.width_, settings_.height_)));
-  context_->apply();
-  
+  //vis_quad_shader_->uniform("gamma_correction", (bool)settings_.gamma_correction_);
+  //context_->set_viewport(scm::gl::viewport(scm::math::vec2ui(0, 0), scm::math::vec2ui(settings_.width_, settings_.height_)));
+  //context_->apply();
   screen_quad_->draw(context_);
 
   rendering_ = false;
@@ -1778,66 +1776,74 @@ void save_brush() {
   }
 }
 
-
-void glut_keyboard(unsigned char key, int32_t x, int32_t y) {
-
-  int k = (int)key;
-
-  switch (k) {
-    case 27:
-      exit(0);
-      break;
-
-    //case '.':
-      //glutFullScreenToggle();
-      //break;
-
-    case 'F':
-      {
-        ++settings_.travel_;
-        if(settings_.travel_ > 4){
-          settings_.travel_ = 0;
-        }
-        settings_.travel_speed_ = (settings_.travel_ == 0 ? 0.5f
-                  : settings_.travel_ == 1 ? 5.5f
-                  : settings_.travel_ == 2 ? 20.5f
-                  : settings_.travel_ == 3 ? 100.5f
-                  : 300.5f);
-        camera_->set_dolly_sens_(settings_.travel_speed_);
-      }
-      break;
-      
-    case '0':
-      selection_.selected_model_ = -1;
-      break;
-    case '-':
-      if (--selection_.selected_model_ < 0) selection_.selected_model_ = num_models_-1;
-      break;
-    case '=':
-      if (++selection_.selected_model_ >= num_models_) selection_.selected_model_ = 0;
-      break;
-
-    case 'Z':
-      //dump camera transform
-      std::cout << "view_tf: " << std::endl;
-      std::cout << camera_->get_high_precision_view_matrix() << std::endl;
-      break;
-
-    case ' ':
-      settings_.gui_ = !settings_.gui_;
-      break;
-
-    case 'B':
-      save_brush();
-      break;
-
-    default:
-      break;
-
-  }
-
+void update_input_keys(input &input_, uint8_t k)
+{
+  ImGuiIO &io = ImGui::GetIO();
+  if (k == 'Q')
+    input_.keys_[0] = io.KeysDown[k];
+  if (k == 'W')
+    input_.keys_[1] = io.KeysDown[k];
+  if (k == 'E')
+    input_.keys_[2] = io.KeysDown[k];
 }
 
+void glut_keyboard(unsigned char key, int32_t x, int32_t y) {
+    uint8_t k = (uint8_t)key;
+    switch (k) {
+    case 27:
+        exit(0);
+        break;
+    case 'C':
+        std::cout << "cam_pos: " << std::endl;
+        std::cout << camera_->get_cam_pos() << "\n" << std::endl;
+        break;
+    case 'P':
+        std::cout << "projection_matrix: " << std::endl;
+        std::cout << camera_->get_projection_matrix() << "\n" << std::endl;
+        break;
+    case 'M':
+        std::cout << "cam_matrix: " << std::endl;
+        std::cout << camera_->get_cam_matrix() << "\n" << std::endl;
+        break;
+    case 'V':
+        std::cout << "view_matrix: " << std::endl;
+        std::cout << camera_->get_view_matrix() << "\n" << std::endl;
+        break; 
+    case 'F':
+        {
+        ++settings_.travel_;
+        if(settings_.travel_ > 4){
+            settings_.travel_ = 0;
+        }
+        settings_.travel_speed_ = (settings_.travel_ == 0 ? 0.5f
+                    : settings_.travel_ == 1 ? 5.5f
+                    : settings_.travel_ == 2 ? 20.5f
+                    : settings_.travel_ == 3 ? 100.5f
+                    : 300.5f);
+        camera_->set_dolly_sens_(settings_.travel_speed_);
+        }
+        break;
+    case '0':
+        selection_.selected_model_ = -1;
+        break;
+    case '-':
+        if (--selection_.selected_model_ < 0) selection_.selected_model_ = num_models_-1;
+        break;
+    case '=':
+        if (++selection_.selected_model_ >= num_models_) selection_.selected_model_ = 0;
+        break;
+    case 'Z': //deutsche Tastaturauslegung: 'Y'
+        std::cout << "view_tf: " << std::endl;
+        std::cout << camera_->get_high_precision_view_matrix() << "\n" << std::endl;
+        break;
+    case ' ':
+        settings_.gui_ = !settings_.gui_;
+        break;
+    case 'B':
+        save_brush();
+        break;
+  }
+}
 
 void glut_motion(int32_t x, int32_t y) {
 
@@ -1982,10 +1988,8 @@ void create_aux_resources() {
 
     std::vector<scm::math::vec3f> bvh_lines_to_upload;
     for (uint64_t node_id = 0; node_id < bounding_boxes.size(); ++node_id) {
-      const auto& node = bounding_boxes[node_id];
-
+      const auto &node = bounding_boxes[node_id];
       lines_from_min_max(node.min_vertex(), node.max_vertex(), bvh_lines_to_upload);
-
     }
 
     bvh_line_resource.buffer_ = device_->create_buffer(scm::gl::BIND_VERTEX_BUFFER, 
@@ -2249,29 +2253,33 @@ Window *_current_context = nullptr;
 class EventHandler {
   public:
     static void on_error(int _err_code, const char *err_msg) { throw std::runtime_error(err_msg); }
+
     static void on_window_resize(GLFWwindow *glfw_window, int width, int height) {
       Window *window = (Window *)glfwGetWindowUserPointer(glfw_window);
       window->_height = (uint32_t)height;
       window->_width = (uint32_t)width;
       glut_resize(width, height);
-
     }
+
     static void on_window_key_press(GLFWwindow *glfw_window, int key, int scancode, int action, int mods) {
-      if (action == GLFW_RELEASE)
-        return;
-
-      Window *window = (Window *)glfwGetWindowUserPointer(glfw_window);
-      switch(key) {
-        case GLFW_KEY_ESCAPE:
-          glfwSetWindowShouldClose(glfw_window, GL_TRUE);
-          break;
-        default:
-          glut_keyboard((uint8_t)key, 0, 0);
-          break;
+      uint8_t k = (uint8_t)key;
+      if(action == GLFW_PRESS) {
+        ImGui_ImplGlfwGL3_KeyCallback(glfw_window, key, scancode, action, mods);
+        update_input_keys(input_, k);
+        switch(k) {
+          case GLFW_KEY_ESCAPE:
+            glfwSetWindowShouldClose(glfw_window, GL_TRUE);
+            break;
+          default:
+            glut_keyboard(k, 0, 0);
+            break;
+        }
       }
-
-      ImGui_ImplGlfwGL3_KeyCallback(glfw_window, key, scancode, action, mods);
-
+      if(action == GLFW_RELEASE)
+      {
+        ImGui_ImplGlfwGL3_KeyCallback(glfw_window, key, scancode, action, mods);
+        update_input_keys(input_, k);
+      }
     }
 
     static void on_window_char(GLFWwindow *glfw_window, unsigned int codepoint) {
@@ -2303,7 +2311,7 @@ class EventHandler {
 
     static void on_window_move_cursor(GLFWwindow *glfw_window, double x, double y) {
       Window *window = (Window *)glfwGetWindowUserPointer(glfw_window);
-      
+
       if (input_.gui_lock_) {
         input_.prev_mouse_ = scm::math::vec2i(x, y);
         input_.mouse_ = scm::math::vec2i(x, y);
@@ -2312,9 +2320,14 @@ class EventHandler {
 
       input_.prev_mouse_ = input_.mouse_;
       input_.mouse_ = scm::math::vec2i(x, y);
-  
-      if (!input_.brush_mode_) {
+
+      if(!input_.brush_mode_ && !input_.keys_[0] && !input_.keys_[1] && !input_.keys_[2])
+      {
         camera_->update_trackball(x, y, settings_.width_, settings_.height_, input_.mouse_state_);
+      }
+      else if(!input_.brush_mode_ && (input_.keys_[0] || input_.keys_[1] || input_.keys_[2]))
+      {
+       camera_->update_camera(x, y, settings_.width_, settings_.height_, input_.mouse_state_, input_.keys_);
       }
       else {
         brush();
@@ -2327,13 +2340,15 @@ class EventHandler {
       input_.prev_mouse_ = input_.mouse_;
       input_.mouse_ = scm::math::vec2i(x, y);
 
-      if (!input_.brush_mode_) {
-        input_.trackball_x_ = 2.f * float(x - (settings_.width_/2))/float(settings_.width_) ;
+      if(!input_.brush_mode_)
+      {
+        input_.trackball_x_ = 2.f * float(x - (settings_.width_/2))/float(settings_.width_);
         input_.trackball_y_ = 2.f * float(settings_.height_ - y - (settings_.height_/2))/float(settings_.height_);
-      
+
         camera_->update_trackball_mouse_pos(input_.trackball_x_, input_.trackball_y_);
       }
-      else {
+      else
+      {
         brush();
       }
     }
@@ -2367,9 +2382,9 @@ Window *create_window(unsigned int width, unsigned int height, const std::string
   new_window->_height = height;
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
   glfwWindowHint(GLFW_RESIZABLE, 1);
   glfwWindowHint(GLFW_FOCUSED, 1);
 

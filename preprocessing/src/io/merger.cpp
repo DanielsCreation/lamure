@@ -167,7 +167,7 @@ void merger::flush_buffer()
 {
     if(!buffer_.empty())
     {
-        LOGGER_INFO("Flush buffer to disk. buffer size: " << buffer_.size() << " surfels");
+        //LOGGER_INFO("Flush buffer to disk. buffer size: " << buffer_.size() << "\n");
         {
             std::lock_guard<std::mutex> lk(mtx_);
             flush_ready_ = true;

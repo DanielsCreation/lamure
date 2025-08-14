@@ -61,13 +61,16 @@ class RENDERING_DLL camera
     void calc_view_to_screen_space_matrix(scm::math::vec2f const &win_dimensions);
     void set_trackball_matrix(scm::math::mat4d const &tb_matrix) { trackball_.set_transform(tb_matrix); }
     const scm::math::mat4d &trackball_matrix() const { return trackball_.transform(); };
+    scm::math::vec3d camera::get_cam_pos();
+    scm::math::mat4f camera::get_cam_matrix();
 
     scm::gl::frustum::classification_result const cull_against_frustum(scm::gl::frustum const &frustum, scm::gl::box const &b) const;
 
     scm::gl::frustum const get_frustum_by_model(scm::math::mat4 const &model) const;
 
     void update_trackball_mouse_pos(double x, double y);
-    void update_trackball(int x, int y, int window_width, int window_height, mouse_state const &mouse_state);
+    void update_trackball(double x, double y, int window_width, int window_height, mouse_state const &mouse_state);
+    void update_camera(double x, double y, int window_width, int window_height, mouse_state const &mouse_state, bool keys[]);
 
     void set_dolly_sens_(double ds) { dolly_sens_ = ds; }
 

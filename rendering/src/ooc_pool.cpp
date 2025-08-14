@@ -142,7 +142,7 @@ void ooc_pool::run()
         if(job.node_id_ != invalid_node_t)
         {
             assert(job.slot_mem_ != nullptr);
-            // assert(job.slot_mem_provenance_ != nullptr);
+            //assert(job.slot_mem_provenance_ != nullptr);
 
             size_t stride_in_bytes = database->get_node_size(job.model_id_);
             size_t offset_in_bytes = job.node_id_ * stride_in_bytes;

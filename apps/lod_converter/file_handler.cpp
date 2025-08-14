@@ -107,11 +107,11 @@ file_handler::load(std::string fileName){
     std::cout<<"\nclustersize=" <<clustersize_ <<"\t\t";
     std::cout<<"noodesintree=" <<nodesintree_ <<"\t\t";
     std::cout<<"repositoryelements_=" <<repositorysize_ <<"\n";
-
+    std::cout << "before new" << std::endl;
     serialtree_ = new serializedTree[nodesintree_];
     infile.read( reinterpret_cast<char*>(serialtree_), (nodesintree_ * sizeof(serialtree_[0])) );
-
-//    std::cout<<"serialTree_[50].idx: " <<serialtree_[50].idx <<"\n";
+    std::cout << "after new" << std::endl;
+    //    std::cout<<"serialTree_[50].idx: " <<serialtree_[50].idx <<"\n";
 //    std::cout<<"serialTree_[50].repoidx: " <<serialtree_[50].repoidx <<"\n";
 //    std::cout<<"serialTree_[50].poisi: " <<serialtree_[50].poisi <<"\n";
 //    std::cout<<"serialTree_[50].clusiz: " <<serialtree_[50].clusiz <<"\n\n";

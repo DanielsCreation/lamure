@@ -2,15 +2,15 @@
 # search paths
 ##############################################################################
 SET(SCHISM_INCLUDE_SEARCH_DIRS
-  $ENV{EXTERNLIBS}/schism/include
   ${GLOBAL_EXT_DIR}/schism/include
+  #$ENV{EXTERNLIBS}/schism/include
   ${GLOBAL_EXT_DIR}/include/schism
   ${SCHISM_INCLUDE_SEARCH_DIR}
   /opt/schism/current
 )
 
 SET(SCHISM_LIBRARY_SEARCH_DIRS
-  $ENV{EXTERNLIBS}/schism/lib
+  #$ENV{EXTERNLIBS}/schism/lib
   ${GLOBAL_EXT_DIR}/lib
   ${GLOBAL_EXT_DIR}/schism/lib
   ${SCHISM_LIBRARY_SEARCH_DIR}

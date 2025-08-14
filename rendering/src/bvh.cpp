@@ -56,7 +56,6 @@ bvh(const std::string& filename)
        throw std::runtime_error(
           "lamure: bvh::Invalid file extension encountered.");
     }
-
 };
 
 const node_t bvh::

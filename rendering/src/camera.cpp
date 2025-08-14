@@ -167,7 +167,7 @@ void camera::update_trackball_mouse_pos(double x, double y)
     trackball_init_y_ = y;
 }
 
-void camera::update_trackball(int x, int y, int window_width, int window_height, mouse_state const &mouse_state)
+void camera::update_trackball(double x, double y, int window_width, int window_height, mouse_state const &mouse_state)
 {
     double nx = 2.0 * double(x - (window_width / 2)) / double(window_width);
     double ny = 2.0 * double(window_height - y - (window_height / 2)) / double(window_height);
@@ -202,27 +202,7 @@ float const camera::transfer_values(float currentValue, float maxValue) const { 
 float const camera::remap_value(float value, float oldMin, float oldMax, float newMin, float newMax) const
 {
     float intermediateValue = (((value - oldMin) * (newMax - newMin)) / (oldMax - oldMin)) + newMin;
-
     return transfer_values(intermediateValue, newMax) * intermediateValue;
-}
-
-scm::math::mat4f const camera::get_view_matrix() const
-{
-    switch(cam_state_)
-    {
-    case CAM_STATE_LAMURE:
-        return scm::math::mat4f(trackball_.transform());
-        break;
-
-    case CAM_STATE_GUA:
-        return view_matrix_;
-        break;
-
-    default:
-        break;
-    }
-
-    return scm::math::mat4f();
 }
 
 scm::math::mat4d const camera::get_high_precision_view_matrix() const
@@ -270,6 +250,41 @@ std::vector<scm::math::vec3d> camera::get_frustum_corners() const
     return result;
 }
 
+void camera::update_camera(double x, double y, int window_width, int window_height, mouse_state const &mouse_state, bool keys[])
+{
+    double nx = 2.0 * double(x - (window_width / 2)) / double(window_width);
+    double ny = 2.0 * double(window_height - y - (window_height / 2)) / double(window_height);
+    double f = dolly_sens_ < 1.0 ? 0.02 : 0.3;
+    // translations
+    if(mouse_state.rb_down_ && keys[0])
+    {
+        translate(dolly_sens_ * 0.5 * (nx - trackball_init_x_), 0, 0);
+    }
+    if(mouse_state.rb_down_ && keys[1])
+    {
+        translate(0, dolly_sens_ * 0.5 * (ny - trackball_init_y_), 0);
+    }
+    if(mouse_state.rb_down_ && keys[2])
+    {
+        translate(0, 0, dolly_sens_ * 1 * (ny - trackball_init_y_));
+    }
+    // rotations
+    if(mouse_state.lb_down_ && keys[0])
+    {
+        rotate(dolly_sens_ * 0.5 * (ny - trackball_init_y_), 0, 0);
+    }
+    if(mouse_state.lb_down_ && keys[1])
+    {
+        rotate(0, dolly_sens_ * 0.5 * (ny - trackball_init_y_), 0);
+    }
+    if(mouse_state.lb_down_ && keys[2])
+    {
+        rotate(0, 0, dolly_sens_ * 0.5 * (nx - trackball_init_x_));
+    }
+    trackball_init_y_ = ny;
+    trackball_init_x_ = nx;
+}
+
 void camera::
 translate(const float& x, const float& y, const float& z)
 {
@@ -287,6 +302,7 @@ translate(const float& x, const float& y, const float& z)
 void camera::
 rotate(const float& x, const float& y, const float& z)
 {
+
     if(cam_state_ == CAM_STATE_GUA)
     {
         view_matrix_ = scm::math::make_rotation(x, scm::math::vec3f(1.0f, 0.0f, 0.0f)) * 
@@ -303,6 +319,36 @@ rotate(const float& x, const float& y, const float& z)
                                 trackball_trans);
     }
 }
+
+scm::math::mat4f const camera::get_view_matrix() const
+{
+    switch(cam_state_)
+    {
+    case CAM_STATE_LAMURE:
+        return scm::math::mat4f(trackball_.transform());
+        break;
+    case CAM_STATE_GUA:
+        return view_matrix_;
+        break;
+    default:
+        break;
+    }
+    return scm::math::mat4f();
+}
+
+scm::math::vec3d camera::get_cam_pos()
+{
+    scm::math::mat4f cm = scm::math::inverse(scm::math::mat4f(this->trackball_matrix()));
+    scm::math::vec3d cam_pos = scm::math::vec3d(cm[12], cm[13], cm[14]);
+    return cam_pos;
+}
+
+scm::math::mat4f camera::get_cam_matrix()
+{
+    scm::math::mat4f cm = scm::math::inverse(scm::math::mat4f(this->trackball_.transform()));
+    return cm;
+}
+
 
 }
 }

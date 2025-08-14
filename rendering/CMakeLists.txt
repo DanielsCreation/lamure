@@ -28,11 +28,12 @@ SOURCE_GROUP("shaders" FILES ${SHADERS})
 ############################################################
 # Build library
 
-include_directories(${PROJECT_INCLUDE_DIR} 
-                    ${COMMON_INCLUDE_DIR}
-                    ${GLM_INCLUDE_DIR}
-                    ${PVS_COMMON_INCLUDE_DIR} 
-                    ${LAMURE_CONFIG_DIR})
+include_directories(
+    ${PROJECT_INCLUDE_DIR} 
+    ${COMMON_INCLUDE_DIR}
+    ${GLM_INCLUDE_DIR}
+    ${PVS_COMMON_INCLUDE_DIR} 
+    ${LAMURE_CONFIG_DIR})
 
 include_directories(SYSTEM ${SCHISM_INCLUDE_DIRS}
                            ${Boost_INCLUDE_DIR})
@@ -59,7 +60,9 @@ target_link_libraries(${PROJECT_NAME}
     ${PROJECT_LIBS}
     ${COMMON_LIBRARY}
     ${PVS_COMMON_LIBRARY}
+    optimized ${SCHISM_CORE_LIBRARY} debug ${SCHISM_CORE_LIBRARY_DEBUG}
     optimized ${SCHISM_GL_CORE_LIBRARY} debug ${SCHISM_GL_CORE_LIBRARY_DEBUG}
+    optimized ${SCHISM_GL_UTIL_LIBRARY} debug ${SCHISM_GL_UTIL_LIBRARY_DEBUG}
     optimized ${Boost_THREAD_LIBRARY_RELEASE} debug ${Boost_THREAD_LIBRARY_DEBUG}
     optimized ${Boost_DATE_TIME_LIBRARY_RELEASE} debug ${Boost_DATE_TIME_LIBRARY_DEBUG}
     optimized ${Boost_PROGRAM_OPTIONS_LIBRARY_RELEASE} debug ${Boost_PROGRAM_OPTIONS_LIBRARY_DEBUG}

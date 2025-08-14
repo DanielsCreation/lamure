@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2018 Bauhaus-Universitaet Weimar
+﻿// Copyright (c) 2014-2018 Bauhaus-Universitaet Weimar
 // This Software is distributed under the Modified BSD License, see license.txt.
 //
 // Virtual Reality and Visualization Research Group 
@@ -8,60 +8,79 @@
 #include <lamure/pre/io/format_bin.h>
 #include <lamure/pre/node_serializer.h>
 #include <stdexcept>
+#include <lamure/pre/io/file.h>
+#include <lamure/pre/surfel_disk_array.h>
+
 
 namespace lamure
 {
 namespace pre
 {
 
-void format_bin::
-read(const std::string &filename, surfel_callback_funtion callback)
+void format_bin::read(const std::string &filename, surfel_callback_function callback)
 {
-    
-    shared_surfel_file input_file_disk_access = std::make_shared<surfel_file>();
-    surfel_disk_array input;
+    std::ifstream file(filename.c_str(), std::ios::in | std::ios::binary);
 
-    input_file_disk_access->open(filename);
-    size_t input_size = input_file_disk_access->get_size();
-    input = surfel_disk_array(input_file_disk_access, 0, input_size);
-    
-    for(size_t k = 0; k < input_size; ++k)
+    if(!file.is_open())
     {
-        surfel surf = input.read_surfel(k);
-        vec3r pos = surf.pos();
-        vec3b color = surf.color();
-        real radius = surf.radius();
-        vec3f normal = surf.normal();
-
-        callback(surfel(vec3r(pos.x, pos.y, pos.z), vec3b(color.r, color.g, color.b), radius, vec3f(normal.x, normal.y, normal.z)));
+        throw std::runtime_error("unable to open file " + filename);
     }
 
-    input_file_disk_access->close();
-    LOGGER_INFO("Total number of surfels: " << input.length());
+    file.seekg(std::ios::beg, std::ios::end);
+    size_t file_size = file.tellg();
+    file.seekg(std::ios::beg, std::ios::beg);
+    size_t num_surfels = file_size / 27;
 
+    for(uint64_t i = 0; i < num_surfels; ++i)
+    {
+        vec3r pos;
+        file.read((char *)&pos.x, 8);
+        file.read((char *)&pos.y, 8);
+        file.read((char *)&pos.z, 8);
+
+        vec3b color;
+        file.read((char *)&color.r, 1);
+        file.read((char *)&color.g, 1);
+        file.read((char *)&color.b, 1);
+
+        callback(surfel(vec3r(pos[0], pos[1], pos[2]), vec3b(color[0], color[1], color[2])));
+    }
+    file.close();
 }
 
-void format_bin::
-write(const std::string &filename, buffer_callback_function callback)
+
+void format_bin::write(const std::string &filename, buffer_callback_function callback)
 {
-    surfel_file file;
+    std::ofstream file(filename, std::ios::out | std::ios::ate | std::ios::binary);
+
+    if(!file.is_open())
+        throw std::runtime_error("Unable to open file: " + filename);
 
     surfel_vector buffer;
-    size_t count = 0;
+    size_t counter = 0;
 
-    file.open(filename, true);
     while(true)
     {
         bool ret = callback(buffer);
         if(!ret)
             break;
 
-        file.append(&buffer);
-        count += buffer.size();
-    }
-    file.close();
+        for(int i = 0; i < buffer.size(); i++)
+        {
+            file.write((char *)&(buffer.at(i).pos().x), sizeof(real));
+            file.write((char *)&(buffer.at(i).pos().y), sizeof(real));
+            file.write((char *)&(buffer.at(i).pos().z), sizeof(real));
 
-    LOGGER_TRACE("Output surfels: " << count);
+            file.write((char *)&(buffer.at(i).color().r), sizeof(uint8_t));
+            file.write((char *)&(buffer.at(i).color().g), sizeof(uint8_t));
+            file.write((char *)&(buffer.at(i).color().b), sizeof(uint8_t));
+        }
+        counter += buffer.size();
+    }
+
+    file.close();
+    LOGGER_TRACE("Output surfels: " << counter << "\n");
+
 }
 
 }

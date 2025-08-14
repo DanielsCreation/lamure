@@ -78,6 +78,7 @@ void gpu_context::create(scm::gl::render_device_ptr device, Data_Provenance cons
     }
     is_created_ = true;
 
+    //test_video_memory(device, data_provenance);
     test_video_memory(device);
 
     model_database *database = model_database::get_instance();

@@ -18,7 +18,7 @@ namespace pre
 {
 
 void format_xyz_grey::
-read(const std::string &filename, surfel_callback_funtion callback)
+read(const std::string &filename, surfel_callback_function callback)
 {
     std::ifstream xyz_file_stream(filename);
 

@@ -3,6 +3,7 @@
 ##############################################################################
 SET(OSG_INCLUDE_SEARCH_DIRS
   ${GLOBAL_EXT_DIR}/OpenSceneGraph/lib
+  ${GLOBAL_EXT_DIR}/OpenSceneGraph/bin
 )
 
 SET(OSG_LIBRARY_SEARCH_DIRS

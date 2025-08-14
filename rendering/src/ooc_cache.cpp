@@ -87,7 +87,7 @@ ooc_cache *ooc_cache::get_instance(Data_Provenance const &data_provenance)
             policy *policy = policy::get_instance();
             model_database *database = model_database::get_instance();
             // size_t out_of_core_budget_in_nodes = (policy->out_of_core_budget_in_mb()*1024*1024) / database->get_slot_size();
-            long freeram = 0;
+            size_t freeram = 0;
 #ifdef WIN32
             MEMORYSTATUSEX statex;
 
@@ -104,24 +104,26 @@ ooc_cache *ooc_cache::get_instance(Data_Provenance const &data_provenance)
 #endif
 
             float safety = 0.75;
-            long ram_free_in_bytes = freeram * safety;
-            long out_of_core_budget_in_bytes = policy->out_of_core_budget_in_mb() * 1024 * 1024;
+            size_t ram_free_in_bytes = freeram * safety;
+            size_t out_of_core_budget_in_bytes = policy->out_of_core_budget_in_mb() * 1024 * 1024;
 
             if(policy->out_of_core_budget_in_mb() == 0)
             {
                 std::cout << "##### Total free memory (" << ram_free_in_bytes / (1024 * 1024) << " MB) will be used for the out of core budget #####" << std::endl;
                 out_of_core_budget_in_bytes = ram_free_in_bytes;
+                policy->set_out_of_core_budget_in_mb(ram_free_in_bytes / (1024 * 1024));
             }
             else if(ram_free_in_bytes < out_of_core_budget_in_bytes)
             {
                 std::cout << "##### The specified out of core budget is too large! " << ram_free_in_bytes / (1024 * 1024) << " MB will be used for the out of core budget #####" << std::endl;
                 out_of_core_budget_in_bytes = ram_free_in_bytes;
+                policy->set_out_of_core_budget_in_mb(ram_free_in_bytes / (1024 * 1024));
             }
             else
             {
                 std::cout << "##### " << policy->out_of_core_budget_in_mb() << " MB will be used for the out of core budget #####" << std::endl;
             }
-            long node_size_total = database->get_primitives_per_node() * data_provenance.get_size_in_bytes() + database->get_slot_size();
+            size_t node_size_total = database->get_primitives_per_node() * data_provenance.get_size_in_bytes() + database->get_slot_size();
             size_t out_of_core_budget_in_nodes = out_of_core_budget_in_bytes / node_size_total;
 
             if(data_provenance.get_size_in_bytes() > 0)

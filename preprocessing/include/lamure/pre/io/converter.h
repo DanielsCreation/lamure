@@ -47,8 +47,7 @@ public:
     void convert(const std::string &input_filename,
                  const std::string &output_filename);
 
-    void write_in_core_surfels_out(const surfel_vector &,
-                                   const std::string &output_filename);
+    void write_in_core_surfels_out(const surfel_vector &, const std::string &output_filename);
 
     const size_t surfels_in_buffer() const
     { return surfels_in_buffer_; }

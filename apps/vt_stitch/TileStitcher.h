@@ -19,8 +19,8 @@
 #include <windows.h>
 #include <FreeImage.h>
 #include <FreeImagePlus.h>
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
 
 /**
  * TileStitcher combines several smaller images (tiles) to one big raw data picture.
@@ -112,7 +112,7 @@ private:
      * @param y Y coordinate of a tile.
      * @return Path to the file.
      */
-    std::experimental::filesystem::path get_path(int x, int y) const;
+    boost::filesystem::path get_path(int x, int y) const;
 
     /**
      * Extracts further information about the tiles:

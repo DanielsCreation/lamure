@@ -16,6 +16,7 @@
 #include <lamure/ren/cut_update_pool.h>
 #include <lamure/ren/gpu_context.h>
 #include <lamure/ren/platform.h>
+#include <chrono>
 
 namespace lamure
 {

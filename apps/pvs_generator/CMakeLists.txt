@@ -7,6 +7,7 @@ include_directories(${PVS_COMMON_INCLUDE_DIR}
                     ${PVS_PREPROCESSING_INCLUDE_DIR}
 					${REND_INCLUDE_DIR} 
                     ${COMMON_INCLUDE_DIR}
+                    ${FREEGLUT_INCLUDE_DIR}
                     ${GLUT_INCLUDE_DIR}
                     ${FREEIMAGE_INCLUDE_DIR}
 			        ${LAMURE_CONFIG_DIR})
