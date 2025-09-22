@@ -53,10 +53,6 @@ struct Config
 };
 
 
-
-
-
-
 int main(int argc, const char *argv[])
 {
     // Start timer and enable nested OpenMP

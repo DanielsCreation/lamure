@@ -11,8 +11,9 @@
   },
   "ExpandedNodes": [
     "",
-    "\\apps"
+    "\\apps",
+    "\\apps\\xyz_transformer"
   ],
-  "SelectedNode": "\\apps\\preprocessing",
+  "SelectedNode": "\\apps\\CMakeLists.txt",
   "PreviewInSolutionExplorer": false
 }

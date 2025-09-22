@@ -335,7 +335,7 @@ void bvh::downsweep(
 
             // percent counter
             ++processed_nodes;
-            uint8_t new_percent_processed = (uint8_t)((float)(processed_nodes / first_leaf_ * 100));
+            uint8_t new_percent_processed = (uint8_t)((float(processed_nodes) / float(first_leaf_)) * 100.0f);
             if(percent_processed != new_percent_processed)
             {
                 percent_processed = new_percent_processed;
@@ -419,20 +419,12 @@ void bvh::downsweep_subtree_in_core(const bvh_node &node, size_t &disk_leaf_dest
 
 void bvh::compute_normal_and_radius(const bvh_node *source_node, const normal_computation_strategy &normal_computation_strategy, const radius_computation_strategy &radius_computation_strategy)
 {
-    //real max_radius = 0.0;
     for(size_t k = 0; k < max_surfels_per_node_; ++k)
     {
         if(k < source_node->mem_array().length())
         {
             // read surfel
             surfel surf = source_node->mem_array().read_surfel(k);
-
-            //std::cout << "pos: " << surf.pos() << std::endl;
-            //std::cout << "color: " << "(" << int(surf.color().r) << " " << int(surf.color().g) << " " << int(surf.color().b) << ")" << std::endl;
-            //std::cout << "radius: " << surf.radius() << std::endl;
-            //std::cout << "normal: " << surf.normal() << std::endl;
-            //std::cin.ignore();
-            //max_radius = std::max(max_radius, surf.radius());
 
             uint16_t num_nearest_neighbours_to_search = std::max(radius_computation_strategy.number_of_neighbours(), normal_computation_strategy.number_of_neighbours());
 
@@ -449,7 +441,6 @@ void bvh::compute_normal_and_radius(const bvh_node *source_node, const normal_co
             source_node->mem_array().write_surfel(surf, k);
         }
     }
-    //std::cout << "max_radius: " << max_radius << std::endl;
 }
 
 void bvh::get_descendant_leaves(const node_id_type node, std::vector<node_id_type> &result, const node_id_type first_leaf, const std::unordered_set<size_t> &excluded_leaves) const
@@ -595,7 +586,6 @@ std::vector<std::pair<surfel_id_t, real>> bvh::get_nearest_neighbours(const surf
 std::vector<std::pair<surfel_id_t, real>> bvh::get_nearest_neighbours_in_nodes(const surfel_id_t target_surfel, const std::vector<node_id_type> &target_nodes,
                                                                                const uint32_t number_of_neighbours) const
 {
-    std::cout << "bvh::get_nearest_neighbours_in_nodes" << std::endl;
     node_id_type current_node = target_surfel.node_idx;
     vec3r center = nodes_[target_surfel.node_idx].mem_array().read_surfel_ref(target_surfel.surfel_idx).pos();
 
@@ -680,7 +670,6 @@ std::vector<std::pair<surfel_id_t, real>> bvh::get_nearest_neighbours_in_nodes(c
 
 std::vector<std::pair<surfel_id_t, real>> bvh::get_natural_neighbours(surfel_id_t const &target_surfel, std::vector<std::pair<surfel_id_t, real>> const &all_nearest_neighbours) const
 {
-    std::cout << "bvh::get_natural_neighbours" << std::endl;
     // limit to 24 closest neighbours
     const uint32_t NUM_NATURAL_NEIGHBOURS = 24;
     auto nearest_neighbours = all_nearest_neighbours;
@@ -785,7 +774,6 @@ std::vector<std::pair<uint32_t, real>> bvh::extract_approximate_natural_neighbou
 
 std::vector<std::pair<surfel, real>> bvh::get_locally_natural_neighbours(std::vector<surfel> const &potential_neighbour_vec, vec3r const &poi, uint32_t num_nearest_neighbours) const
 {
-    std::cout << "bvh::get_locally_natural_neighbours" << std::endl;
     num_nearest_neighbours = std::max(uint32_t(3), num_nearest_neighbours);
 
     std::vector<std::pair<surfel, real>> k_nearest_neighbours;
@@ -843,7 +831,6 @@ std::vector<std::pair<surfel, real>> bvh::get_locally_natural_neighbours(std::ve
 
 void bvh::spawn_create_lod_jobs(const uint32_t first_node_of_level, const uint32_t last_node_of_level, const reduction_strategy &reduction_strgy, const bool resample)
 {
-    std::cout << "bvh::spawn_create_lod_jobs" << std::endl;
     uint32_t const hw = std::thread::hardware_concurrency();
     uint32_t const num_threads = (max_threads_ > 0) ? std::min(max_threads_, hw) : hw;
 
@@ -885,7 +872,6 @@ void bvh::spawn_compute_attribute_jobs(const uint32_t first_node_of_level, const
 
 void bvh::spawn_compute_bounding_boxes_downsweep_jobs(const uint32_t slice_left, const uint32_t slice_right)
 {
-    std::cout << "bvh::spawn_compute_bounding_boxes_downsweep_jobs" << std::endl;
     uint32_t const hw = std::thread::hardware_concurrency();
     uint32_t const num_threads = (max_threads_ > 0) ? std::min(max_threads_, hw) : hw;
     working_queue_head_counter_.initialize(0); // let the threads fetch a local thread idx
@@ -905,7 +891,6 @@ void bvh::spawn_compute_bounding_boxes_downsweep_jobs(const uint32_t slice_left,
 
 void bvh::resample_based_on_overlap(surfel_mem_array const &joined_input, surfel_mem_array &output_mem_array, std::vector<surfel_id_t> const &resample_candidates) const
 {
-    std::cout << "bvh::resample_based_on_overlap" << std::endl;
     if (joined_input.has_provenance()) {
         throw std::runtime_error("resample_based_on_overlap to implement for PROVENANCE");
     }
@@ -993,7 +978,6 @@ void bvh::resample_based_on_overlap(surfel_mem_array const &joined_input, surfel
 
 std::vector<surfel_id_t> bvh::find_resample_candidates(const uint32_t node_idx) const
 {
-    std::cout << "bvh::find_resample_candidates" << std::endl;
     if (nodes_.at(node_idx).has_provenance()) {
         throw std::runtime_error("find_resample_candidates to implement for PROVENANCE");
     }
@@ -1035,7 +1019,6 @@ std::vector<surfel_id_t> bvh::find_resample_candidates(const uint32_t node_idx) 
 
 void bvh::spawn_compute_bounding_boxes_upsweep_jobs(const uint32_t first_node_of_level, const uint32_t last_node_of_level, const int32_t level)
 {
-    std::cout << "bvh::spawn_compute_bounding_boxes_upsweep_jobs" << std::endl;
     uint32_t const num_threads = std::thread::hardware_concurrency();
     working_queue_head_counter_.initialize(0); // let the threads fetch a local thread idx
     std::vector<std::thread> threads;
@@ -1054,7 +1037,6 @@ void bvh::spawn_compute_bounding_boxes_upsweep_jobs(const uint32_t first_node_of
 
 void bvh::spawn_split_node_jobs(size_t &slice_left, size_t &slice_right, size_t &new_slice_left, size_t &new_slice_right, const uint32_t level)
 {
-    std::cout << "bvh::spawn_split_node_jobs" << std::endl;
     uint32_t const num_threads = std::thread::hardware_concurrency();
     working_queue_head_counter_.initialize(0); // let the threads fetch a local thread idx
     std::vector<std::thread> threads;
@@ -1161,7 +1143,6 @@ void bvh::thread_create_lod(const uint32_t start_marker, const uint32_t end_mark
 
 surfel_mem_array bvh::resample_node(uint32_t node_index) const
 {
-    std::cout << "bvh::resample_node" << std::endl;
     bvh_node const *current_node = &nodes_.at(node_index);
 
     if (current_node->has_provenance()) {
@@ -1185,7 +1166,6 @@ surfel_mem_array bvh::resample_node(uint32_t node_index) const
 
 void bvh::thread_resample(const uint32_t start_marker, const uint32_t end_marker, const bool update_percentage)
 {
-    std::cout << "bvh::thread_resample" << std::endl;
     uint32_t node_index = working_queue_head_counter_.increment_head();
 
     while(node_index < end_marker)
@@ -1251,7 +1231,6 @@ void bvh::thread_compute_attributes(const uint32_t start_marker, const uint32_t 
 
 void bvh::thread_compute_bounding_boxes_downsweep(const uint32_t slice_left, const uint32_t slice_right, const bool update_percentage, const uint32_t num_threads)
 {
-    //std::cout << "bvh::thread_compute_bounding_boxes_downsweep" << std::endl;
     uint32_t thread_idx = working_queue_head_counter_.increment_head();
 
     uint32_t total_num_slices = (slice_right - slice_left) + 2;
@@ -1260,7 +1239,8 @@ void bvh::thread_compute_bounding_boxes_downsweep(const uint32_t slice_left, con
     uint32_t local_start_index = slice_left + thread_idx * num_slices_per_thread;
     uint32_t local_end_index = slice_left + (thread_idx + 1) * num_slices_per_thread;
 
-    for(uint32_t slice_index = local_start_index; num_slices_per_thread < local_end_index; ++slice_index)
+    //for(uint32_t slice_index = local_start_index; num_slices_per_thread < local_end_index; ++slice_index)
+    for(uint32_t slice_index = local_start_index; slice_index < local_end_index; ++slice_index)
     {
         // early termination if number of nodes could not be evenly divided
         if(slice_index > slice_right)
@@ -1291,7 +1271,6 @@ void bvh::thread_compute_bounding_boxes_upsweep(const uint32_t start_marker, con
 
     for(uint32_t node_index = local_start_index; node_index < local_end_index; ++node_index)
     {
-        // early termination if number of nodes could not be evenly divided
         if(node_index >= end_marker)
         {
             break;
@@ -1333,7 +1312,6 @@ void bvh::thread_compute_bounding_boxes_upsweep(const uint32_t start_marker, con
 void bvh::thread_remove_outlier_jobs(const uint32_t start_marker, const uint32_t end_marker, const uint32_t num_outliers, const uint16_t num_neighbours,
                                      std::vector<std::pair<surfel_id_t, real>> &intermediate_outliers_for_thread)
 {
-    std::cout << "bvh::thread_remove_outlier_jobs" << std::endl;
     uint32_t node_idx = working_queue_head_counter_.increment_head();
 
     while(node_idx < end_marker)
@@ -1390,7 +1368,6 @@ void bvh::thread_remove_outlier_jobs(const uint32_t start_marker, const uint32_t
 void bvh::thread_split_node_jobs(size_t &slice_left, size_t &slice_right, size_t &new_slice_left, size_t &new_slice_right, const bool update_percentage, const int32_t level,
                                  const uint32_t num_threads)
 {
-    //std::cout << "bvh::thread_split_node_jobs" << std::endl;
     const uint32_t sort_parallelizm_thres = 2;
 
     uint32_t thread_idx = working_queue_head_counter_.increment_head();
@@ -1437,7 +1414,6 @@ void bvh::thread_split_node_jobs(size_t &slice_left, size_t &slice_right, size_t
 void bvh::upsweep(const reduction_strategy &reduction_strgy, const normal_computation_strategy &normal_strategy, const radius_computation_strategy &radius_strategy, bool recompute_leaf_level,
                   bool resample)
 {
-    
     uint64_t num_nodes_with_provenance = 0;
     for (const auto& node : nodes_) {
       if (node.has_provenance()) {
@@ -1581,7 +1557,6 @@ void bvh::upsweep(const reduction_strategy &reduction_strgy, const normal_comput
 
 void bvh::resample()
 {
-    std::cout << "bvh::resample" << std::endl;
     uint32_t first_node_of_level = get_first_node_id_of_depth(depth_);
     uint32_t last_node_of_level = first_node_of_level + get_length_of_depth(depth_);
 

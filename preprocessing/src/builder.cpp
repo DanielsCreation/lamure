@@ -73,8 +73,9 @@ auto get_start_stage = [](const std::string &ext) -> uint16_t
         {".ply", 0}, 
         {".e57", 0}, 
         {".bin", 1}, 
-        {".bin_all", 2},  
-        {".bin_wo_outlier", 3}, 
+        {".bin_all", 2}, 
+        {".bin_wo_outlier", 2}, 
+        {".bin_all_wo_outlier", 2},
         {".bvhd", 4}, 
         {".bvhu", 5},
     };
@@ -278,7 +279,7 @@ boost::filesystem::path builder::downsweep(boost::filesystem::path input_file, u
 
                 surfel_vector kept_surfels = bvh.remove_outliers_statistically(num_outliers, desc_.number_of_outlier_neighbours);
 
-                format_bin format_out;
+                format_bin_all format_out;
 
                 std::unique_ptr<format_abstract> dummy_format_in{new format_xyz()};
 
@@ -287,7 +288,7 @@ boost::filesystem::path builder::downsweep(boost::filesystem::path input_file, u
                 conv.set_surfel_callback([](surfel &s, bool &keep)
                                          { if (s.pos() == vec3r(0.0, 0.0, 0.0)) keep = false; });
 
-                auto binary_outlier_removed_file = add_to_path(base_path_, ".bin_wo_outlier");
+                auto binary_outlier_removed_file = add_to_path(base_path_, ".bin_all_wo_outlier");
 
                 conv.write_in_core_surfels_out(kept_surfels, binary_outlier_removed_file.string());
 
@@ -559,13 +560,14 @@ bool builder::construct()
     // Stage 3: Downsweep
     if((start_stage <= 3) && (final_stage >= 3))
     {
-        std::cout << "[Stage 3] Downsweep " << bin_all_file << "\n";
-        infile = downsweep(bin_all_file, start_stage);
-        if(infile.empty())
+        std::cout << "[Stage 3] Downsweep " << infile << "\n";
+        fs::path out_file = downsweep(infile, start_stage);
+        if(out_file.empty())
         {
-            LOGGER_ERROR("[Stage 3] failed: " << bin_all_file);
+            LOGGER_ERROR("[Stage 3] failed: " << infile); // Eingabe loggen
             return false;
         }
+        infile = std::move(out_file);
     }
 
     // Stage 4: Upsweep
